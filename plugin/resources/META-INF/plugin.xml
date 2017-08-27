@@ -371,8 +371,12 @@
 
         <filetype.decompiler filetype="FPC_PPU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUFileDecompiler"/>
         <filetype.decompiler filetype="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.lang.compiled.DCUFileDecompiler"/>
+        <filetype.decompiler filetype="TP_Unit" implementationClass="com.siberika.idea.pascal.lang.compiled.TPUFileDecompiler"/>
+
         <fileType.fileViewProviderFactory filetype="FPC_PPU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUViewProviderFactory"/>
         <fileType.fileViewProviderFactory filetype="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUViewProviderFactory"/>
+        <fileType.fileViewProviderFactory filetype="TP_Unit" implementationClass="com.siberika.idea.pascal.lang.compiled.TPUViewProviderFactory"/>
+
 
         <lang.importOptimizer language="Pascal" implementationClass="com.siberika.idea.pascal.lang.PascalImportOptimizer"/>
 

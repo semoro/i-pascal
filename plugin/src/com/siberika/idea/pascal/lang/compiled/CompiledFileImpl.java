@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * Author: George Bakhtadze
  * Date: 14/11/2013
  */
-abstract class CompiledFileImpl extends LightPsiFileBase implements PsiFileEx, PsiCompiledFile {
+public abstract class CompiledFileImpl extends LightPsiFileBase implements PsiFileEx, PsiCompiledFile {
 
     private static final String DECOMPILED_FILENAME_PREFIX = "$";
 
