@@ -1,33 +1,15 @@
 package com.siberika.idea.pascal.editor.completion;
 
-import com.intellij.codeInsight.completion.CompletionContributor;
-import com.intellij.codeInsight.completion.CompletionInitializationContext;
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionProvider;
-import com.intellij.codeInsight.completion.CompletionResultSet;
-import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.completion.InsertHandler;
-import com.intellij.codeInsight.completion.InsertionContext;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
+import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.ide.DataManager;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiErrorElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.SmartPsiElementPointer;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -47,16 +29,10 @@ import com.siberika.idea.pascal.lang.psi.impl.PascalRoutineImpl;
 import com.siberika.idea.pascal.lang.references.PasReferenceUtil;
 import com.siberika.idea.pascal.util.DocUtil;
 import com.siberika.idea.pascal.util.PsiUtil;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Author: George Bakhtadze
@@ -74,9 +50,8 @@ public class PascalCompletionContributor extends CompletionContributor {
             PasTypes.TYPE, PasTypes.CLASS, PasTypes.DISPINTERFACE, PasTypes.RECORD, PasTypes.OBJECT,
             PasTypes.PACKED, PasTypes.SET, PasTypes.FILE, PasTypes.HELPER, PasTypes.ARRAY
     );
-    private static final double PRIORITY_HIGHER = 10.0;
-    private static final double PRIORITY_LOWER = -10.0;
-    private static final double PRIORITY_LOWEST = -100.0;
+
+    private PascalCompletionLookupElementFactory lookupElementFactory;
 
     private static Map<String, String> getInsertMap() {
         Map<String, String> res = new HashMap<String, String>();
@@ -84,7 +59,7 @@ public class PascalCompletionContributor extends CompletionContributor {
         res.put(PasTypes.PROGRAM.toString(), String.format(" %s;\nbegin\n  %s\nend.\n", PLACEHOLDER_FILENAME, DocUtil.PLACEHOLDER_CARET));
         res.put(PasTypes.LIBRARY.toString(), String.format(" %s;\n\nexports %s\n\nbegin\n\nend.\n", PLACEHOLDER_FILENAME, DocUtil.PLACEHOLDER_CARET));
         res.put(PasTypes.PACKAGE.toString(), String.format(" %s;\n\nrequires\n\n contains %s\n\nend.\n", PLACEHOLDER_FILENAME, DocUtil.PLACEHOLDER_CARET));
-        res.put(PasTypes.BEGIN.toString(),       String.format("\n%s\nend;\n", DocUtil.PLACEHOLDER_CARET));
+        res.put(PasTypes.BEGIN.toString(), String.format("\n%s\nend;\n", DocUtil.PLACEHOLDER_CARET));
         res.put(PasTypes.BEGIN.toString() + " ", String.format("\n%s\nend.\n", DocUtil.PLACEHOLDER_CARET));
         res.put(PasTypes.END.toString(), ";");
         res.put(PasTypes.INTERFACE.toString(), String.format("\n  %s\nimplementation\n", DocUtil.PLACEHOLDER_CARET));
@@ -139,6 +114,7 @@ public class PascalCompletionContributor extends CompletionContributor {
 
     @SuppressWarnings("unchecked")
     public PascalCompletionContributor() {
+        lookupElementFactory = new PascalCompletionLookupElementFactory();
         extend(CompletionType.BASIC, PlatformPatterns.psiElement().withLanguage(PascalLanguage.INSTANCE), new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
@@ -270,6 +246,7 @@ public class PascalCompletionContributor extends CompletionContributor {
     }
 
     private TokenSet TS_CONTROL_STATEMENT = TokenSet.create(PasTypes.IF_STATEMENT, PasTypes.FOR_STATEMENT, PasTypes.WHILE_STATEMENT, PasTypes.WITH_STATEMENT, PasTypes.CASE_STATEMENT);
+
     private boolean isControlStatement(PsiElement pos) {
         return TS_CONTROL_STATEMENT.contains(pos.getNode().getElementType());
     }
@@ -319,7 +296,7 @@ public class PascalCompletionContributor extends CompletionContributor {
             return true;
         }
         return PsiUtil.isInstanceOfAny(pos, PasAssignPart.class, PasArgumentList.class,
-                                            PasIfStatement.class, PasWhileStatement.class, PasCaseStatement.class);
+                PasIfStatement.class, PasWhileStatement.class, PasCaseStatement.class);
     }
 
     private void handleStatement(CompletionResultSet result, CompletionParameters parameters, PsiElement pos, PsiElement originalPos, Collection<PasField> entities) {
@@ -359,7 +336,7 @@ public class PascalCompletionContributor extends CompletionContributor {
 
     private void handleStructured(CompletionResultSet result, CompletionParameters parameters, PsiElement pos, PsiElement originalPos) {
         if (pos instanceof PasClassField || originalPos instanceof PasClassTypeDecl
-         || (pos instanceof PasExportedRoutine && isMethod((PascalRoutineImpl) pos))) {
+                || (pos instanceof PasExportedRoutine && isMethod((PascalRoutineImpl) pos))) {
             if (DocUtil.isFirstOnLine(parameters.getEditor(), parameters.getPosition())) {
                 appendTokenSet(result, PascalLexer.VISIBILITY);
                 appendTokenSet(result, TokenSet.andNot(PascalLexer.STRUCT_DECLARATIONS, TS_CLASS));
@@ -478,57 +455,7 @@ public class PascalCompletionContributor extends CompletionContributor {
     }
 
     private LookupElement getLookupElement(VirtualFile virtualFile, Editor editor, @NotNull PasField field) {
-        String scope = field.owner != null ? field.owner.getName() : "-";
-        LookupElementBuilder lookupElement = buildFromElement(field) ? createLookupElement(editor, field) : LookupElementBuilder.create(field.name);
-        LookupElement element = lookupElement.appendTailText(" : " + field.fieldType.toString().toLowerCase(), true).
-                withCaseSensitivity(true).withTypeText(scope, false);
-        if (field.name.startsWith("__")) {
-            return priority(element, PRIORITY_LOWEST);
-        }
-        if (field.name.startsWith("_")) {
-            return priority(element, PRIORITY_LOWEST);
-        }
-        if (virtualFile != null && !virtualFile.equals(field.getElementPtr().getVirtualFile())) {
-            return priority(element, PRIORITY_LOWER);
-        }
-        return element;
-    }
-
-    private LookupElement priority(LookupElement element, double priority) {
-        return PrioritizedLookupElement.withPriority(element, priority);
-    }
-
-    private static boolean buildFromElement(@NotNull PasField field) {
-        return (field.getElementPtr() != null) && (StringUtils.isEmpty(field.name) || (field.fieldType == PasField.FieldType.ROUTINE));
-    }
-
-    private LookupElementBuilder createLookupElement(final Editor editor, @NotNull PasField field) {
-        assert field.getElement() != null;
-        LookupElementBuilder res = LookupElementBuilder.create(field.getElement()).withPresentableText(PsiUtil.getFieldName(field.getElement()));
-        if (field.fieldType == PasField.FieldType.ROUTINE) {
-            PascalNamedElement el = field.getElement();
-            final String content = (el instanceof PascalRoutineImpl && PsiUtil.hasParameters((PascalRoutineImpl) el)) ? "(" + DocUtil.PLACEHOLDER_CARET + ")" : "()" + DocUtil.PLACEHOLDER_CARET;
-            res = res.withInsertHandler(new InsertHandler<LookupElement>() {
-                @Override
-                public void handleInsert(InsertionContext context, LookupElement item) {
-                    DocUtil.adjustDocument(context.getEditor(), context.getEditor().getCaretModel().getOffset(), content);
-                    AnAction act = ActionManager.getInstance().getAction("ParameterInfo");
-                    DataContext dataContext = DataManager.getInstance().getDataContext(editor.getContentComponent());
-                    act.actionPerformed(new AnActionEvent(null, dataContext, "", act.getTemplatePresentation(), ActionManager.getInstance(), 0));
-                }
-            });
-        }
-        return res;
-    }
-
-    private boolean isQualifiedIdent(PsiElement parent) {
-        if (PsiUtil.isIdent(parent)) {
-            PsiElement par = parent.getParent();
-            if (par instanceof PasFullyQualifiedIdent) {
-                return !StringUtils.isEmpty(((PasFullyQualifiedIdent) par).getNamespace());
-            }
-        }
-        return false;
+        return lookupElementFactory.createLookupElement(virtualFile, editor, field);
     }
 
     /*
@@ -581,6 +508,7 @@ public class PascalCompletionContributor extends CompletionContributor {
     }
 
     private static Map<IElementType, Class<? extends PascalPsiElement>> TOKEN_TO_PSI = new HashMap<IElementType, Class<? extends PascalPsiElement>>();
+
     static {
         TOKEN_TO_PSI.put(PascalLexer.PROGRAM, PasProgramModuleHead.class);
         TOKEN_TO_PSI.put(PascalLexer.UNIT, PasUnitModuleHead.class);
@@ -612,7 +540,7 @@ public class PascalCompletionContributor extends CompletionContributor {
         }
     }
 
-    private void appendTokenSetIfAbsent(CompletionResultSet result, TokenSet tokenSet, PsiElement position, Class...classes) {
+    private void appendTokenSetIfAbsent(CompletionResultSet result, TokenSet tokenSet, PsiElement position, Class... classes) {
         if (PsiTreeUtil.findChildOfAnyType(position, classes) == null) {
             for (IElementType op : tokenSet.getTypes()) {
                 LookupElementBuilder el = LookupElementBuilder.create(op.toString()).withIcon(PascalIcons.GENERAL).withStrikeoutness(op.equals(PasTypes.GOTO)).withInsertHandler(INSERT_HANDLER);
@@ -639,9 +567,9 @@ public class PascalCompletionContributor extends CompletionContributor {
                 DocUtil.adjustDocument(context.getEditor(), caretPos, content);
                 context.commitDocument();
                 if (CLOSING_STATEMENTS.contains(item.getLookupString())) {
-                    PsiElement el = context.getFile().findElementAt(caretPos-1);
+                    PsiElement el = context.getFile().findElementAt(caretPos - 1);
                     PsiElement block = PsiTreeUtil.getParentOfType(el, PasCompoundStatement.class, PasTryStatement.class, PasRepeatStatement.class);
-                    if (block != null)  {
+                    if (block != null) {
                         DocUtil.reformat(block, true);
                     }
                 } else {

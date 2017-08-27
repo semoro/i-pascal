@@ -112,3 +112,10 @@ compileJava {
     dependsOn(generateLexer)
     dependsOn(generateParser)
 }
+
+task copyKotlinClasses(type: Copy) {
+    from "build/classes/kotlin"
+    into "build/classes/java"
+}
+
+classes.dependsOn copyKotlinClasses
