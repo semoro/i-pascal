@@ -1,0 +1,114 @@
+buildscript {
+    ext.kotlin_version = '1.1.4-2'
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url 'https://dl.bintray.com/jetbrains/intellij-plugin-service' }
+        maven { url 'https://jitpack.io'}
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "com.github.hurricup:gradle-grammar-kit-plugin:2017.1.1"
+    }
+
+}
+
+
+plugins {
+    id "org.jetbrains.intellij" version "0.2.16"
+}
+
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'maven'
+
+group = 'com.siberika.idea'
+version = '1.0-SNAPSHOT'
+
+description = """Pascal plugin"""
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+
+
+repositories {
+    mavenCentral()
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+dependencies {
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.6.4'
+    testCompile group: 'org.mockito', name: 'mockito-all', version:'1.9.0'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+
+    compileOnly('com.github.JetBrains:Grammar-Kit:34fd65b92af957c25d940b828d81ab3ba9b398b0') {
+        exclude group: 'org.jetbrains.plugins'
+        exclude module: 'idea'
+    }
+
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+sourceSets {
+    main.java.srcDirs += 'plugin/src'
+    main.resources.srcDirs += 'plugin/resources'
+    test.java.srcDirs += 'plugin/test'
+    test.resources.srcDirs += 'plugin/test/resources'
+    main.java.srcDirs += 'gen'
+    main.java.srcDirs += 'jps-plugin/src'
+    main.resources.srcDirs += 'jps-plugin/resources'
+}
+
+apply plugin: 'org.jetbrains.intellij'
+
+apply plugin: 'org.jetbrains.grammarkit'
+
+grammarKit {
+    grammarKitRelease = '1.5.2'
+}
+
+import org.jetbrains.grammarkit.tasks.*
+
+
+task generateLexer(type: GenerateLexer) {
+
+    source = "plugin/src/com/siberika/idea/pascal/lang/lexer/pascal.flex"
+
+    targetDir = "gen/com/siberika/idea/pascal/lang/lexer/"
+
+    targetClass = "_PascalLexer"
+
+    //skeleton = 'plugin/src/com/siberika/idea/pascal/lang/lexer/idea-flex.skeleton'
+}
+
+task generateParser(type: GenerateParser) {
+
+    source = "plugin/src/com/siberika/idea/pascal/lang/parser/pascal.bnf"
+
+    targetRoot = 'gen'
+
+    pathToParser = '/com/siberika/idea/pascal/lang/parser/PascalParser.java'
+
+    pathToPsiRoot = '/com/siberika/idea/pascal/lang/psi/'
+}
+
+
+compileJava {
+    dependsOn(generateLexer)
+    dependsOn(generateParser)
+}

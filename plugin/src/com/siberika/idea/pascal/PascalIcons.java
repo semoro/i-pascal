@@ -27,6 +27,7 @@ import javax.swing.*;
  * Time: 2:30:48 AM
  */
 public interface PascalIcons {
+
     final String PATH = "/icons/";
 
     final Icon GENERAL = IconLoader.findIcon(PATH + "pascal_16x16.png");
