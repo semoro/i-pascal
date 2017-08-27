@@ -40,14 +40,38 @@ class PascalCompletionLookupElementFactory {
         return typeText
     }
 
+    fun PascalRoutineImpl.calculateParameterListPresentation(): String {
+        val res = StringBuilder()
+        val params = this.formalParameterSection
+        if (params != null) {
+            res.append("(")
+            var nonFirst = false
+            for (param in params.formalParameterList) {
+                val td = param.typeDecl
+                var typeStr = PsiUtil.TYPE_UNTYPED_NAME
+                if (td != null) {
+                    typeStr = td.text
+                }
+                for (i in 0 until param.namedIdentList.size) {
+                    res.append(if (nonFirst) "," else "").append(typeStr)
+                    nonFirst = true
+                }
+            }
+            res.append(")")
+        } else {
+            res.append("()")
+        }
+        return res.toString()
+    }
+
     fun createLookupElement(virtualFile: VirtualFile?, editor: Editor, field: PasField): LookupElement {
         val scope = if (field.owner != null) field.owner.name else "-"
 
-        assert(field.element != null)
+        val fieldElement = field.element!!
 
         var lookupElement = LookupElementBuilder
-                .create(field.element!!)
-                .withPresentableText(field.element!!.name)
+                .create(fieldElement)
+                .withPresentableText(fieldElement.name)
 
         lookupElement = when (field.fieldType) {
             PasField.FieldType.TYPE -> lookupElement.withIcon(PascalIcons.TYPE)
@@ -61,8 +85,14 @@ class PascalCompletionLookupElementFactory {
         }
 
         if (field.fieldType == PasField.FieldType.ROUTINE) {
-            val el = field.element
-            val content = if (el is PascalRoutineImpl && PsiUtil.hasParameters(el as PascalRoutineImpl?)) "(" + DocUtil.PLACEHOLDER_CARET + ")" else "()" + DocUtil.PLACEHOLDER_CARET
+
+
+            val routine = fieldElement as? PascalRoutineImpl
+            if (routine != null) {
+                lookupElement = lookupElement.appendTailText(routine.calculateParameterListPresentation(), false)
+            }
+
+            val content = if (fieldElement is PascalRoutineImpl && PsiUtil.hasParameters(fieldElement as PascalRoutineImpl?)) "(" + DocUtil.PLACEHOLDER_CARET + ")" else "()" + DocUtil.PLACEHOLDER_CARET
             lookupElement = lookupElement.withInsertHandler { context, _ ->
                 DocUtil.adjustDocument(context.editor, context.editor.caretModel.offset, content)
                 val act = ActionManager.getInstance().getAction("ParameterInfo")
