@@ -46,6 +46,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version:'1.6.4'
     testCompile group: 'org.mockito', name: 'mockito-all', version:'1.9.0'
     compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
     compileOnly('com.github.JetBrains:Grammar-Kit:34fd65b92af957c25d940b828d81ab3ba9b398b0') {
         exclude group: 'org.jetbrains.plugins'

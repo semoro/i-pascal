@@ -5,5 +5,5 @@ package com.siberika.idea.pascal.jps.sdk;
  * Date: 15/05/2015
  */
 public enum PascalCompilerFamily {
-    FPC, DELPHI
+    FPC, DELPHI, TURBO
 }
