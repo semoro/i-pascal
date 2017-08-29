@@ -322,6 +322,7 @@
         <lang.syntaxHighlighterFactory key="Pascal" language="Pascal" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterFactory" />
         <syntaxHighlighter key="FPC_PPU" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
         <syntaxHighlighter key="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
+        <syntaxHighlighter key="TP_Unit" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
         <colorSettingsPage implementation="com.siberika.idea.pascal.editor.highlighter.PascalColorsPage" />
 
         <!--<problemFileHighlightFilter implementation="com.siberika.idea.pascal.editor.highlighter.PascalProblemFileHighlightFilter"/>-->
@@ -332,6 +333,7 @@
 
         <sdkType implementation="com.siberika.idea.pascal.sdk.FPCSdkType"/>
         <sdkType implementation="com.siberika.idea.pascal.sdk.DelphiSdkType"/>
+        <sdkType implementation="com.siberika.idea.pascal.sdk.TurboSdkType"/>
         <configurationType id="FPC" implementation="com.siberika.idea.pascal.run.PascalConfigurationType"/>
         <runConfigurationProducer id="FPC" implementation="com.siberika.idea.pascal.run.PascalRunContextConfigurationProducer" />
         <consoleFilterProvider implementation="com.siberika.idea.pascal.run.HeaptrcConsoleFilterProvider" />
@@ -368,6 +370,7 @@
         <lang.psiStructureViewFactory language="Pascal" implementationClass="com.siberika.idea.pascal.editor.structure.PasStructureViewFactory"/>
         <structureViewBuilder key="FPC_PPU" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
         <structureViewBuilder key="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
+        <structureViewBuilder key="TP_Unit" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
 
         <filetype.decompiler filetype="FPC_PPU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUFileDecompiler"/>
         <filetype.decompiler filetype="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.lang.compiled.DCUFileDecompiler"/>

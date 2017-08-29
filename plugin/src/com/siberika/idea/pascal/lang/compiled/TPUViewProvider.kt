@@ -7,10 +7,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.FileIndexFacade
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.ClassFileViewProvider
-import com.intellij.psi.FileViewProvider
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
+import com.intellij.psi.*
 import com.siberika.idea.pascal.PascalLanguage
 import com.siberika.idea.pascal.TPUFileType
 
@@ -23,11 +20,11 @@ class TPUViewProvider(
     override fun createFile(project: Project, vFile: VirtualFile, fileType: FileType): PsiFile? {
         val fileIndex = ServiceManager.getService(project, FileIndexFacade::class.java)
         val fType = if (fileType is JavaClassFileType) vFile.fileType else fileType
-        if (fileIndex.isInLibraryClasses(vFile) || !fileIndex.isInSource(vFile)) {
+        //f (fileIndex.isInLibraryClasses(vFile) || !fileIndex.isInSource(vFile)) {
             if (fType is TPUFileType) {
                 return TPUFileImpl(manager, this)
             }
-        }
+        //}
         return null
     }
 

@@ -1,6 +1,7 @@
 package com.siberika.idea.pascal.lang.references;
 
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -16,42 +17,11 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.SmartList;
 import com.intellij.util.StringLenComparator;
 import com.intellij.util.indexing.FileBasedIndex;
-import com.siberika.idea.pascal.DCUFileType;
-import com.siberika.idea.pascal.PPUFileType;
-import com.siberika.idea.pascal.PascalFileType;
-import com.siberika.idea.pascal.PascalRTException;
+import com.siberika.idea.pascal.*;
 import com.siberika.idea.pascal.lang.parser.NamespaceRec;
 import com.siberika.idea.pascal.lang.parser.PascalParserUtil;
-import com.siberika.idea.pascal.lang.psi.PasCallExpr;
-import com.siberika.idea.pascal.lang.psi.PasClassProperty;
-import com.siberika.idea.pascal.lang.psi.PasEntityScope;
-import com.siberika.idea.pascal.lang.psi.PasEnumType;
-import com.siberika.idea.pascal.lang.psi.PasExpression;
-import com.siberika.idea.pascal.lang.psi.PasFullyQualifiedIdent;
-import com.siberika.idea.pascal.lang.psi.PasHandler;
-import com.siberika.idea.pascal.lang.psi.PasInvalidScopeException;
-import com.siberika.idea.pascal.lang.psi.PasModule;
-import com.siberika.idea.pascal.lang.psi.PasNamedIdent;
-import com.siberika.idea.pascal.lang.psi.PasTypeDecl;
-import com.siberika.idea.pascal.lang.psi.PasTypeID;
-import com.siberika.idea.pascal.lang.psi.PasWithStatement;
-import com.siberika.idea.pascal.lang.psi.PascalNamedElement;
-import com.siberika.idea.pascal.lang.psi.PascalStructType;
-import com.siberika.idea.pascal.lang.psi.impl.PasArrayTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasClassTypeTypeDeclImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasEnumTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasField;
-import com.siberika.idea.pascal.lang.psi.impl.PasFileTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasPointerTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasProcedureTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasSetTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasStringTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasStructTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasSubRangeTypeImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PasTypeIDImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PascalExpression;
-import com.siberika.idea.pascal.lang.psi.impl.PascalModuleImpl;
-import com.siberika.idea.pascal.lang.psi.impl.PascalRoutineImpl;
+import com.siberika.idea.pascal.lang.psi.*;
+import com.siberika.idea.pascal.lang.psi.impl.*;
 import com.siberika.idea.pascal.sdk.BuiltinsParser;
 import com.siberika.idea.pascal.util.PsiUtil;
 import com.siberika.idea.pascal.util.SyncUtil;
@@ -59,14 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Author: George Bakhtadze
@@ -132,17 +95,17 @@ public class PasReferenceUtil {
     public static List<VirtualFile> findUnitFiles(@NotNull Project project, @Nullable final Module module) {
         final List<VirtualFile> virtualFiles = new SmartList<VirtualFile>();
         if (module != null) {
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, PascalFileType.INSTANCE,
-                    GlobalSearchScope.allScope(project)));
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, PPUFileType.INSTANCE,
-                    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)));
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, DCUFileType.INSTANCE,
-                    GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)));
+            virtualFiles.addAll(FileTypeIndex.getFiles(PascalFileType.INSTANCE, GlobalSearchScope.allScope(project)));
+            for (FileType unitFileType : PascalFileTypeFactory.UNIT_FILE_TYPES) {
+                virtualFiles.addAll(FileTypeIndex.getFiles(unitFileType, GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(module)));
+            }
         } else {
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, PascalFileType.INSTANCE, ProjectScope.getLibrariesScope(project)));
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, PPUFileType.INSTANCE, ProjectScope.getLibrariesScope(project)));
-            virtualFiles.addAll(FileBasedIndex.getInstance().getContainingFiles(FileTypeIndex.NAME, DCUFileType.INSTANCE, ProjectScope.getLibrariesScope(project)));
+            for (FileType unitFileType : PascalFileTypeFactory.UNIT_FILE_TYPES) {
+                virtualFiles.addAll(FileTypeIndex.getFiles(unitFileType, ProjectScope.getLibrariesScope(project)));
+            }
         }
+
+
         virtualFiles.add(BuiltinsParser.getBuiltinsSource());
         return virtualFiles;
     }
@@ -158,9 +121,15 @@ public class PasReferenceUtil {
 
     private static boolean isUnitExtension(VirtualFile virtualFile) {
         String ext = virtualFile.getExtension();
-        return (ext != null) && PascalFileType.UNIT_EXTENSIONS.contains(ext.toLowerCase())
-                || PPUFileType.INSTANCE.getDefaultExtension().equalsIgnoreCase(ext)
-                || DCUFileType.INSTANCE.getDefaultExtension().equalsIgnoreCase(ext);
+
+        if (ext == null) return false;
+
+        for (FileType unitFileType : PascalFileTypeFactory.UNIT_FILE_TYPES) {
+            if (unitFileType.isBinary() && unitFileType.getDefaultExtension().equalsIgnoreCase(ext)) {
+                return true;
+            }
+        }
+        return PascalFileType.UNIT_EXTENSIONS.contains(ext.toLowerCase());
     }
 
     private static boolean isVisibleWithinUnit(@NotNull PasField field, @NotNull NamespaceRec fqn) {

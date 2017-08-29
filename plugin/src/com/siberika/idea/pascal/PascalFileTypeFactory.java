@@ -1,5 +1,6 @@
 package com.siberika.idea.pascal;
 
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
@@ -16,4 +17,11 @@ public class PascalFileTypeFactory extends FileTypeFactory {
       fileTypeConsumer.consume(DCUFileType.INSTANCE, "dcu");
       fileTypeConsumer.consume(TPUFileType.INSTANCE, "tpu");
   }
+
+    public static final FileType[] UNIT_FILE_TYPES = {
+            PascalFileType.INSTANCE,
+            PPUFileType.INSTANCE,
+            DCUFileType.INSTANCE,
+            TPUFileType.INSTANCE
+    };
 }

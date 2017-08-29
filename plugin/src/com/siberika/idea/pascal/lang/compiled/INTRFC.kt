@@ -54,6 +54,9 @@ class DecompilationSession(private val buffer: ByteBuffer) {
             lastElement = element
         }
 
+        sb.appendln("Implementation")
+        sb.appendln("{compiled}")
+        sb.appendln("End.")
     }
 
 
