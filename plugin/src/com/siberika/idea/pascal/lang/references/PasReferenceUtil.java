@@ -125,7 +125,7 @@ public class PasReferenceUtil {
         if (ext == null) return false;
 
         for (FileType unitFileType : PascalFileTypeFactory.UNIT_FILE_TYPES) {
-            if (unitFileType.isBinary() && unitFileType.getDefaultExtension().equalsIgnoreCase(ext)) {
+            if (unitFileType.getDefaultExtension().equalsIgnoreCase(ext)) {
                 return true;
             }
         }

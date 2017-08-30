@@ -323,6 +323,7 @@
         <syntaxHighlighter key="FPC_PPU" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
         <syntaxHighlighter key="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
         <syntaxHighlighter key="TP_Unit" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
+        <syntaxHighlighter key="TP_Unit_Decompiled" implementationClass="com.siberika.idea.pascal.editor.highlighter.PascalSyntaxHighlighterBase"/>
         <colorSettingsPage implementation="com.siberika.idea.pascal.editor.highlighter.PascalColorsPage" />
 
         <!--<problemFileHighlightFilter implementation="com.siberika.idea.pascal.editor.highlighter.PascalProblemFileHighlightFilter"/>-->
@@ -371,6 +372,7 @@
         <structureViewBuilder key="FPC_PPU" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
         <structureViewBuilder key="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
         <structureViewBuilder key="TP_Unit" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
+        <structureViewBuilder key="TP_Unit_Decompiled" implementationClass="com.siberika.idea.pascal.editor.structure.PascalStructureViewBuilder" />
 
         <filetype.decompiler filetype="FPC_PPU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUFileDecompiler"/>
         <filetype.decompiler filetype="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.lang.compiled.DCUFileDecompiler"/>
@@ -379,6 +381,7 @@
         <fileType.fileViewProviderFactory filetype="FPC_PPU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUViewProviderFactory"/>
         <fileType.fileViewProviderFactory filetype="DELPHI_DCU" implementationClass="com.siberika.idea.pascal.lang.compiled.PPUViewProviderFactory"/>
         <fileType.fileViewProviderFactory filetype="TP_Unit" implementationClass="com.siberika.idea.pascal.lang.compiled.TPUViewProviderFactory"/>
+        <fileType.fileViewProviderFactory filetype="TP_Unit_Decompiled" implementationClass="com.siberika.idea.pascal.lang.compiled.TPUViewProviderFactory"/>
 
 
         <lang.importOptimizer language="Pascal" implementationClass="com.siberika.idea.pascal.lang.PascalImportOptimizer"/>

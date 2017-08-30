@@ -16,12 +16,14 @@ public class PascalFileTypeFactory extends FileTypeFactory {
       fileTypeConsumer.consume(PPUFileType.INSTANCE, "ppu");
       fileTypeConsumer.consume(DCUFileType.INSTANCE, "dcu");
       fileTypeConsumer.consume(TPUFileType.INSTANCE, "tpu");
+      fileTypeConsumer.consume(TPUDFileType.INSTANCE, TPUDFileType.INSTANCE.getDefaultExtension());
   }
 
     public static final FileType[] UNIT_FILE_TYPES = {
             PascalFileType.INSTANCE,
             PPUFileType.INSTANCE,
             DCUFileType.INSTANCE,
-            TPUFileType.INSTANCE
+            TPUFileType.INSTANCE,
+            TPUDFileType.INSTANCE
     };
 }
